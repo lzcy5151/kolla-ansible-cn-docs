@@ -96,7 +96,7 @@ openstack_cacert: "/etc/ssl/certs/ca-certificates.crt"
 openstack_cacert: "/etc/pki/tls/certs/ca-bundle.crt
 ```
 
-Kolla Ansible certificates命令生成一个私有的测试证书颁发机构,然后使用CA为启用的VIP(s)签名生成的证书,以在OpenStack部署中测试TLS。假设您正在使用`multinode`:
+Kolla Ansible certificates命令生成一个私有的测试证书颁发机构,然后使用CA为启用的VIP(s)签名生成的证书,以在OpenStack部署中测试TLS。假设你正在使用`multinode`:
 
 ```bash
 kolla-ansible -i ~/multinode certificates
