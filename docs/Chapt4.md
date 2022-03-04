@@ -96,7 +96,7 @@ openstack_cacert: "/etc/ssl/certs/ca-certificates.crt"
 openstack_cacert: "/etc/pki/tls/certs/ca-bundle.crt
 ```
 
-Kolla Ansible certificates命令生成一个私有的测试证书颁发机构,然后使用CA为启用的VIP(s)签名生成的证书,以在OpenStack部署中测试TLS。假设你正在使用`multinode`:
+Kolla Ansible certificates命令生成一个私有的测试证书颁发机构,然后使用CA为启用的VIP(s)签名生成的证书,以在OpenStack部署中测试TLS。假设您正在使用`multinode`:
 
 ```bash
 kolla-ansible -i ~/multinode certificates
@@ -110,3 +110,88 @@ kolla-ansible -i ~/multinode certificates
 - kolla_enable_tls_internal
 - kolla_internal_fqdn_cert
 - kolla_external_fqdn_cert
+
+>**注意**: 如果 TLS 只在 internal 或 external 网络上启动,那么`kolla_internal_vip_address` 和 `kolla_external_vip_address` 必须是不相同的
+>
+>如果在你的拓扑中只有一个网络配置,TLS只能在internal网络上配置启动
+>
+
+默认TLS网络是不启动的,要启动external TLS:
+
+```yaml
+kolla_enable_tls_external: "yes"
+```
+
+要启动internal TLS:
+
+```yaml
+kolla_enable_tls_internal: "yes"
+```
+
+使用TLS安全认证需要两个证书文件,这将由证书颁发机构提供:
+
+- 带有私钥信息的服务器证书
+- CA 证书
+
+合并的服务器证书和私钥需要提供给Kolla Ansible,通过`kolla_external_fqdn_cert`或者`kolla_internal_fqdn_cert`配置。这些路径默认为`{{kolla_certificates_dir}}/haproxy.pem`和`{{kolla_certificates_dir}}/haproxy-internal.pem`。其中`kolla_certificates_dir`默认为`/etc/kolla/certificates`。
+
+如果客户端还不信任所提供的服务器证书,则需要将CA证书文件分发给客户端。详细内容请参见配置OpenStack客户端TLS和添加CA证书到服务容器。
+
+**为Openstack Client配置TLS**
+
+为`admin-openrc.sh`晚间定位定位CA证书,需要配置`kolla_admin_openrc_cacert`变量,默认并未进行设置。这个path必须在所有运行`admin-openrc.sh`的节点可用。
+
+当TLS在VIP上启动,并且kolla_admin_openrc_cacert 被设置为 /etc/pki/tls/certs/ca-bundle.crt,Openstack client会被admin-openrc.sh设置类似的配置:
+
+```bash
+export OS_PROJECT_DOMAIN_NAME=Default
+export OS_USER_DOMAIN_NAME=Default
+export OS_PROJECT_NAME=admin
+export OS_TENANT_NAME=admin
+export OS_USERNAME=admin
+export OS_PASSWORD=demoPassword
+export OS_AUTH_URL=https://mykolla.example.net:5000
+export OS_INTERFACE=internal
+export OS_ENDPOINT_TYPE=internalURL
+export OS_MISTRAL_ENDPOINT_TYPE=internalURL
+export OS_IDENTITY_API_VERSION=3
+export OS_REGION_NAME=RegionOne
+export OS_AUTH_PLUGIN=password
+# os_cacert is optional for trusted certificates
+export OS_CACERT=/etc/pki/tls/certs/ca-bundle.crt
+```
+
+**为服务容器添加CA证书**
+
+为拷贝CA证书文件到服务容器:
+
+```yaml
+kolla_copy_ca_into_containers: "yes"
+```
+
+当`kolla_copy_ca_into_containers`被配置为yes,在`/etc/kolla/certificates/ca` 中的CA证书会被拷贝到service containers。这对于任何自签名或由私有CA签名的证书都是必需的,而且服务映像信任存储库中还没有这些证书。当容器启动时,Kolla将在容器系统信任存储区中安装这些证书。
+
+当将所有证书文件名复制到容器中时,它们都将带有`kola-customca-`前缀。例如,如果一个证书文件`internal.crt`,它在容器中会被命名为`kolla-customca-internal.crt`。
+
+Debian和Ubuntu容器,证书文件会被拷贝到` /usr/local/share/ca-certificates/ `目录
+
+CentOS和RHEL容器,证书文件会被拷贝到`/etc/pki/ca-trust/source/anchors/`目录
+
+在这两种情况下,有效的证书将被添加到系统信任存储区
+- Debian和Ubuntu系统/etc/ssl/certs/ca-certificates。
+- CentOS和RHEL系统/etc/pki/tls/certs/ca-bundle.crt。
+
+**配置CA bundle**
+
+OpenStack服务默认并不总是信任来自系统信任库的CA证书。要解决这个问题,openstack_cacert变量应该配置容器中CA证书的路径。
+
+在Debian或Ubuntu上使用系统信任存储:
+
+```yaml
+openstack_cacert: /etc/ssl/certs/ca-certificates.crt
+```
+适用于CentOS或RHEL:
+
+```yaml
+openstack_cacert: /etc/pki/tls/certs/ca-bundle.crt
+```
