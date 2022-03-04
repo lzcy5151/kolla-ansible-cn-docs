@@ -16,7 +16,7 @@ Kolla Ansible非常有个性,但也允许完全定制。这使得经验很少的
 
 ## 目录
 
-- [Chapter One 关联项目](docs/Chapt1.md)
-- [Chapter Two 站点提示](docs/Chapt2.md)
-- [Chapter Three 版本说明](docs/Chapt3.md)
-- [Chapter Three 管理员手册](docs/Chapt4.md)
+- [Chapter 1 关联项目](docs/Chapt1.md)
+- [Chapter 2 站点提示](docs/Chapt2.md)
+- [Chapter 3 版本说明](docs/Chapt3.md)
+- [Chapter 4 管理员手册](docs/Chapt4.md)
