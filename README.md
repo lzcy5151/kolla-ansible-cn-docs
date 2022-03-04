@@ -1,2 +1,0 @@
-# kolla-ansible-cn-docs
- 
