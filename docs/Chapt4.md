@@ -1,7 +1,7 @@
 # 第4章 管理员手册
 
 ## 4.1 管理手册
----
+
 ### 4.1.1 进阶配置
 
 **网络节点配置**
@@ -206,48 +206,24 @@ syslog_haproxy_facility: "local1"
 
 指定全局扩展volume,在globals.yml中设置`default_extra_volumes`
   
-```
+```yml
 default_extra_volumes:
 - "/etc/foo:/etc/foo"
 ```
+为同service内所有container添加扩展volume,设置`<service_name>_extra_volumes`
+
+```yml
+nova_extra_volumes:
+- "/etc/foo:/etc/foo"
+```
+为指定容器添加扩展volume,设置`<container_name>_extra_volumes`
   
-
+```yml
+nova_libvirt_extra_volumes:
+- "/etc/foo:/etc/foo"
+```
   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
----
-## 4.1.2 TLS配置
+### 4.1.2 TLS配置
 
 本节介绍如何配置Kolla Ansible部署启用TLS协议的OpenStack。启用在提供的内部和/或外部VIP地址上,OpenStack客户端可以对OpenStack服务的网络通信进行认证和加密。
 
